@@ -14,7 +14,9 @@
 #include "utils.h"
 #include <iostream>
 #include <fstream>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 using namespace pmp;
 
@@ -152,19 +154,16 @@ evaluate(SurfaceMesh& skin,
     assert(3*skin.n_vertices() + 3*skull.n_vertices() == dim0_);
 
 
-    unsigned int i,j,k;
-
-
     // apply w_skull onto multilinear model, i.e., eliminate mode-1 for 'skull'
     Eigen::MatrixXd tempMatrix(dim0_, dim2_);
 #pragma omp parallel for
-    for (i=0; i<dim0_; ++i)
+    for (int i=0; i<static_cast<int>(dim0_); ++i)
     {
-        for (k=0; k<dim2_; ++k)
+        for (unsigned int k=0; k<dim2_; ++k)
         {
             double c(0.0);
-            for (j=0; j<dim1_; ++j)
-                c += tensor(i,j,k) * w_skull(j);
+            for (unsigned int j=0; j<dim1_; ++j)
+                c += tensor(static_cast<unsigned int>(i),j,k) * w_skull(j);
             tempMatrix(i,k) = c;
         }
     }
@@ -173,10 +172,10 @@ evaluate(SurfaceMesh& skin,
     // apply w_fstt onto previously contracted tensor, i.e., eliminate mode-2 for 'fstt'
     Eigen::VectorXd tempVector(dim0_);
 #pragma omp parallel for
-    for (i=0; i<dim0_; ++i)
+    for (int i=0; i<static_cast<int>(dim0_); ++i)
     {
         double c(0.0);
-        for (k=0; k<dim2_; ++k)
+        for (unsigned int k=0; k<dim2_; ++k)
             c += tempMatrix(i,k) * w_fstt(k);
         tempVector(i) = c;
     }
