@@ -23,6 +23,13 @@ add_executable(mlm_export
 )
 target_link_libraries(mlm_export pmp)
 
+add_executable(mlm_fit
+    MLMFit.cpp
+    ${COMMON_SOURCES}
+    ${COMMON_HEADERS}
+)
+target_link_libraries(mlm_fit pmp)
+
 if (EMSCRIPTEN)
     set_target_properties(mlmviewer PROPERTIES LINK_FLAGS "--shell-file ${PROJECT_SOURCE_DIR}/external/pmp-library/src/apps/data/shell.html --preload-file ${PROJECT_SOURCE_DIR}/data@../data")
 endif()

@@ -25,18 +25,6 @@
 namespace
 {
 
-std::string with_trailing_separator(const std::string& path)
-{
-    if (path.empty())
-        return path;
-
-    const char last = path[path.size() - 1];
-    if (last == '/' || last == '\\')
-        return path;
-
-    return path + "/";
-}
-
 void print_usage(const char* executable)
 {
     std::cerr
@@ -51,43 +39,6 @@ void print_usage(const char* executable)
         << "  --out-w-skull <file> Optional output file for the parameters used.\n"
         << "  --out-w-fstt <file> Optional output file for the parameters used.\n"
         << "  --help              Show this help message.\n";
-}
-
-bool save_vector(const Eigen::VectorXd& values, const std::string& filename)
-{
-    std::ofstream ofs(filename.c_str());
-    if (!ofs.is_open())
-    {
-        std::cerr << "Cannot write parameters to " << filename << std::endl;
-        return false;
-    }
-
-    for (int i = 0; i < values.size(); ++i)
-        ofs << values(i) << "\n";
-
-    return true;
-}
-
-void initialize_mean_parameters(
-    Eigen::VectorXd& w_skull,
-    Eigen::VectorXd& w_fstt,
-    const MultilinearModel& model)
-{
-    w_skull = Eigen::VectorXd::Zero(model.dim1());
-    for (int i = 0; i < model.U_skull().rows(); ++i)
-    {
-        for (int j = 0; j < model.U_skull().cols(); ++j)
-            w_skull(j) += model.U_skull()(i, j);
-    }
-    w_skull /= static_cast<double>(model.U_skull().rows());
-
-    w_fstt = Eigen::VectorXd::Zero(model.dim2());
-    for (int i = 0; i < model.U_fstt().rows(); ++i)
-    {
-        for (int j = 0; j < model.U_fstt().cols(); ++j)
-            w_fstt(j) += model.U_fstt()(i, j);
-    }
-    w_fstt /= static_cast<double>(model.U_fstt().rows());
 }
 
 } // namespace

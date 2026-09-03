@@ -12,10 +12,13 @@
 #pragma once
 //=============================================================================
 
+#include "MultilinearModel.h"
+
 #include <pmp/SurfaceMesh.h>
 #include <Eigen/Dense>
 #include <string>
 #include <fstream>
+#include <iostream>
 
 
 //== HELPER ===================================================================
@@ -134,6 +137,64 @@ static bool load_parameters(Eigen::VectorXd& wSkull,
     }
 
     return true;
+}
+
+//=============================================================================
+
+//! ensure directory names can be used as filename prefixes
+static std::string with_trailing_separator(const std::string& path)
+{
+    if (path.empty())
+        return path;
+
+    const char last = path[path.size() - 1];
+    if (last == '/' || last == '\\')
+        return path;
+
+    return path + "/";
+}
+
+//-----------------------------------------------------------------------------
+
+//! save an Eigen vector as one scalar per line
+static bool save_vector(const Eigen::VectorXd& values,
+                        const std::string& filename)
+{
+    std::ofstream ofs(filename.c_str());
+    if (!ofs.is_open())
+    {
+        std::cerr << "Cannot write parameters to " << filename << std::endl;
+        return false;
+    }
+
+    for (int i = 0; i < values.size(); ++i)
+        ofs << values(i) << "\n";
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+
+//! initialize model weights with the same mean setting used by MLMViewer
+static void initialize_mean_parameters(Eigen::VectorXd& wSkull,
+                                       Eigen::VectorXd& wFstt,
+                                       const MultilinearModel& model)
+{
+    wSkull = Eigen::VectorXd::Zero(model.dim1());
+    for (int i = 0; i < model.U_skull().rows(); ++i)
+    {
+        for (int j = 0; j < model.U_skull().cols(); ++j)
+            wSkull(j) += model.U_skull()(i, j);
+    }
+    wSkull /= static_cast<double>(model.U_skull().rows());
+
+    wFstt = Eigen::VectorXd::Zero(model.dim2());
+    for (int i = 0; i < model.U_fstt().rows(); ++i)
+    {
+        for (int j = 0; j < model.U_fstt().cols(); ++j)
+            wFstt(j) += model.U_fstt()(i, j);
+    }
+    wFstt /= static_cast<double>(model.U_fstt().rows());
 }
 
 //=============================================================================
